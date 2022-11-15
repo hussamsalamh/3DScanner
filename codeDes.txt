@@ -1,0 +1,30 @@
+Note :
+    we can set up the leaser to which color we need,
+    so we will choose the blue leaser in order to increase the contrast of RGB
+    we will use black screen in order for threshold to be more correct and little noise in image
+    in the black screen will be white mark that show the straight line
+
+
+First we need a class for : -> we can implement it later
+
+    stepMotor in order to swap/rotate the surface (can )
+
+
+
+
+class : for video in order to divide to frame
+class : for extract all the information from the image -> will take the image
+
+        processImage(image ) -> will return clean image
+        findStraightLine(image: array[array] ) -> will find the location of straight line
+        divideLine( matrix : array[array]]) -> divide the straight line for dl return the value of this pixel in matrix
+            in order to calculate the slope ( to generate the next point )
+
+        calculateDisplacement(prevPoint : int , pixelValue : int ) -> calculate slope
+
+
+class for the output matrix
+    findNextPoint ( slope , previousPoint )     -> will generate a new point and place it in matrix
+
+
+
