@@ -28,3 +28,8 @@ class for the output matrix
 
 
 
+
+Note :
+
+    need to make some line in paper in order to find the relationship of pixels and real life
+

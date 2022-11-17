@@ -11,7 +11,7 @@ class ProcessVideo:
 
     def divideVideo(self):
         capture = cv2.VideoCapture(self.path)
-        frameNumber = 0
+        frameNumber = 1
         while True:
             success, frame = capture.read()
             if not success:
