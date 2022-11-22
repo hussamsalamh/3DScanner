@@ -17,5 +17,5 @@ class ProcessVideo:
             if not success:
                 break
             # array where the light hit the screen
-            self.object.slopes = ProcessFrame(frame).slope
+            self.object.slopes = ProcessFrame(frame).angles
             self.object.generatePoint(frameNumber)
