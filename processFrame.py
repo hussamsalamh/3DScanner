@@ -25,20 +25,20 @@ STD_ALIGN = 15
 STD_STRAIGHT_LINE = 3
 ''' Finding the relationship '''
 DISTANCE_BETWEEN_MARK = A4_PAPER / (NUMBER_OF_MARK + 1)
-DISTANCE_FROM_SCREEN = 1
-HIGTH_FROM_SCREEN = 2
 
 
 class ProcessFrame:
-    def __init__(self, image, frequency, time, x):
+    def __init__(self, image, frequency, time, x, y):
         self.frequency = frequency
         self.origin = x
+        self.y = y
         self.time = time
         self.relationShip = 0
         self.firstFrame = True
         self.image = image
         self.alpha = 0
         self.range = 0
+        self.dy = None
         self.straightLineCoordination = (0, 0)
         self.displacement = None  # Done
         self.angles = None  # in progress
@@ -56,7 +56,7 @@ class ProcessFrame:
             self.findStraightLine()  # Done
         self.relationShip = DISTANCE_BETWEEN_MARK / self.range
         self.calculateDisplacement()
-        self.angles = self.findAlpha()
+        self.angles, self.dy = self.findAlpha()
 
     def appleThreshold(self):
         """only mask the green and display it """
@@ -104,10 +104,10 @@ class ProcessFrame:
 
     @np.vectorize
     def findAlpha(self):
-        dy = DISTANCE_FROM_SCREEN * (
-                self.origin + self.displacement) / self.origin - DISTANCE_FROM_SCREEN / self.origin
+        dy = self.y * (
+                self.origin + self.displacement) / self.origin - self.y / self.origin
         distanceFromBegin = self.frequency * self.time
-        return np.arctan(dy / distanceFromBegin)
+        return np.arctan(dy / distanceFromBegin), dy
 
     def alignScreen(self):
         """self.image now its 2d bc threshold"""
