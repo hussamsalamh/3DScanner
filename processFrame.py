@@ -1,45 +1,49 @@
 """"
-Need to find the distance of x and y
-dx = we can find it from findDistance function
-dy = ( 2y * ( x + dx ) - 2xy ) / 2x
-theta = arctan ( x/y )
 
-alpha : angle from beginning of surface until the point
+Need to enlarge the first line in order to not getting so much error in aligneFunction
+
 
 w : we can find it from dt * fre < step-motor >
 therefore we can find alpha
 
 """
+import math
+
 import cv2
 import numpy as np
 
 """ Image parameters """
 WHITE = 255
 BLACK = 0
-GREEN = 220
+GREEN = 160
 " Numbers of marks in paper "
 NUMBER_OF_MARK = 3
 A4_PAPER = 297
 """ approxmate pixel number from align the frame"""
-STD_ALIGN = 15
+STD_ALIGN = 100
+STD_ALIGN_BOTTOM = 50
+STD_PIXEL = 3
+STD_RANGE = 15
 STD_STRAIGHT_LINE = 3
 ''' Finding the relationship '''
 DISTANCE_BETWEEN_MARK = A4_PAPER / (NUMBER_OF_MARK + 1)
 
 
 class ProcessFrame:
-    def __init__(self, image, frequency, time, x, y):
+    def __init__(self, image, frequency, time, x, y, frameNumber):
         self.frequency = frequency
-        self.origin = x
+        self.frameNumer = frameNumber
+        self.x = x
         self.y = y
+        self.initialAngle = 0
         self.time = time
         self.relationShip = 0
-        self.firstFrame = True
         self.image = image
         self.alpha = 0
         self.range = 0
-        self.dy = None
-        self.straightLineCoordination = (0, 0)
+        self.upperEnd = 0
+        self.bottomBegin = 0
+        self.straightLine = 0
         self.displacement = None  # Done
         self.angles = None  # in progress
         self.callFunction(image)  # Done
@@ -52,16 +56,26 @@ class ProcessFrame:
         if not isinstance(image, np.ndarray):
             self.image = cv2.imread(image)
         self.alignScreen()  # Done
-        if self.firstFrame:
-            self.findStraightLine()  # Done
+        self.findStraightLine()  # Done
+        self.findCoord()
         self.relationShip = DISTANCE_BETWEEN_MARK / self.range
         self.calculateDisplacement()
-        self.angles, self.dy = self.findAlpha()
+        self.angles = self.findAlpha()
+
+    def findCoord(self):
+        for i in range(self.image.shape[0] - STD_ALIGN):
+            if self.image[STD_ALIGN + i, self.straightLine] != WHITE:
+                self.upperEnd = i + STD_ALIGN
+                break
+        for j in range(self.image.shape[0]):
+            if self.image[self.image.shape[0] - STD_ALIGN - j, self.straightLine] != WHITE:
+                self.bottomBegin = self.image.shape[0] - STD_ALIGN - j
+                break
 
     def appleThreshold(self):
         """only mask the green and display it """
         self.image = self.image.copy()[:, :, 1]
-        self.image[self.image < 220] = BLACK
+        self.image[self.image < GREEN] = BLACK
         self.image[self.image > 0] = WHITE
 
     """
@@ -72,8 +86,21 @@ class ProcessFrame:
     
     """
 
+    def findMean(self, row, index, color=WHITE, limit=STD_RANGE):
+        interVail = STD_PIXEL
+        count = 0
+        for i in range(limit):
+            if self.image[row, index + i] < color:
+                if interVail == 0:
+                    return index + count // 2
+                else:
+                    interVail -= 1
+            else:
+                count += 1
+                interVail = STD_PIXEL
+        return index
+
     def findStraightLine(self):
-        self.firstFrame = False
         stillWhite = False
         count = 0
         for i in range(self.image.shape[1]):
@@ -83,36 +110,32 @@ class ProcessFrame:
                 count += 1
                 stillWhite = True
                 if NUMBER_OF_MARK // 2 + 1 == count:
-                    self.straightLineCoordination = (i, 0)
-                    break
+                    self.straightLine = self.findMean(STD_ALIGN, i)
+                    return
             if self.image[STD_ALIGN, i] == BLACK and stillWhite:
                 stillWhite = False
 
     def calculateDisplacementHelper(self, y):
-        for i in range(self.straightLineCoordination[0] - self.range // 2,
-                       self.straightLineCoordination[0] + self.range // 2):
-            if self.image[y, i] > GREEN:
-                return i - self.straightLineCoordination[0]
+        for i in range(self.straightLine - self.range // 2,
+                       self.straightLine + self.range // 2):
+            if self.image[y, i] >= GREEN:
+                return self.findMean(y, i, GREEN) - self.straightLine
         return 0
 
     def calculateDisplacement(self):
         self.displacement = np.zeros(self.image.shape[0])
-        for y in range(STD_STRAIGHT_LINE, self.image.shape[0]):
+        for y in range(self.upperEnd + 1, self.bottomBegin):
             self.displacement[y] = self.calculateDisplacementHelper(y) * self.relationShip
 
     "calculate slope for each pixel "
 
-    @np.vectorize
     def findAlpha(self):
-        dy = self.y * (
-                self.origin + self.displacement) / self.origin - self.y / self.origin
-        distanceFromBegin = self.frequency * self.time
-        return np.arctan(dy / distanceFromBegin), dy
+        return -np.arctan(self.y / (self.x + self.displacement)) + np.arctan(self.y / self.x)
 
     def alignScreen(self):
         """self.image now its 2d bc threshold"""
         if self.image.shape[0] > self.image.shape[1]:
-            self.image = cv2.rotate(self.image, cv2.ROTATE_90_CLOCKWISE)
+            self.image = cv2.rotate(self.image, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
         self.appleThreshold()
         self.rotateImage()
 
@@ -149,40 +172,10 @@ def getDistance(img):
             x1 = x
             break
     for y in range(img.shape[1]):
-        if np.any(img[img.shape[0] - STD_ALIGN, y] == WHITE):
+        if np.any(img[img.shape[0] - STD_ALIGN_BOTTOM, y] == WHITE):
             x2 = y
             break
     return abs(x1 - x2)
 
-
-def list_bars(img):
-    black = False
-    y_idx = []
-    for y in range(img.shape[0]):
-        if img[y, 0] == BLACK and not black:
-            y_idx.append(y)
-            black = True
-        elif img[y, 0] > BLACK and black:
-            y_idx.append(y - 1)
-            black = False
-
-    yy_idx = []
-    for i in range(0, len(y_idx), 2):
-        yy_idx.append((y_idx[i], y_idx[i + 1]))
-
-    x_idx = []
-    black = False
-    for x in range(img.shape[1]):
-        if img[-1, x] == 0 and not black:
-            x_idx.append(x)
-        elif img[-1, x] > 0 and black:
-            x_idx.append(x - 1)
-
-    xx_idx = []
-    for i in range(0, len(x_idx), 2):
-        xx_idx.append((x_idx[i], x_idx[i + 1]))
-    return yy_idx, xx_idx
-
-
-path = "C:\\Users\\Hussam Salamh\\Desktop\\3DScanner\\rot.png"
-a = ProcessFrame(path)
+# path = "C:\\Users\\Hussam Salamh\\Desktop\\3DScanner\\rot.png"
+# a = ProcessFrame(path)

@@ -7,6 +7,8 @@ this will return a matrix which all the element present the dritive
 """
 import time
 
+import cv2
+
 from processFrame import *
 
 
@@ -17,18 +19,30 @@ class ProcessVideo:
         self.y = y
         self.freq = freq
         self.path = path
-        self.derivativeMatrix = None
+        self.angles = None
         self.relationShip = None
+        self.divideVideo()
 
     def divideVideo(self):
         capture = cv2.VideoCapture(self.path)
+        fps = capture.get(cv2.CAP_PROP_FPS)
+        timeStamps = [capture.get(cv2.CAP_PROP_POS_MSEC)]
+        calc_timestamps = [0.0]
         frameNumber = 1
         while True:
-            startTime = time.time()
+            timeStamps[-1] = capture.get(cv2.CAP_PROP_POS_MSEC)
+            calc_timestamps[-1] = calc_timestamps[-1] + 1000 / fps
             success, frame = capture.read()
-            processFrame = ProcessFrame(frame, self.freq, startTime - time.time(), self.x, self.y)
-            self.derivativeMatrix = np.c_[self.derivativeMatrix, processFrame.dy.T]
-            if frameNumber == 1:
-                self.relationShip = processFrame.relationShip
-            if not success:
+            if frameNumber < 5:
+                frameNumber += 1
+                continue
+            if not success or frame is None or frameNumber == 10:  # todo delete
                 break
+            processFrame = ProcessFrame(frame, self.freq, abs(timeStamps[-1] - calc_timestamps[-1]), self.x, self.y,
+                                        frameNumber)
+            if frameNumber == 5:
+                self.relationShip = processFrame.relationShip
+                self.angles = processFrame.angles
+            else:
+                self.angles = np.c_[self.angles, processFrame.angles.T]
+            frameNumber += 1
