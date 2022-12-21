@@ -30,13 +30,9 @@ DISTANCE_BETWEEN_MARK = A4_PAPER / (NUMBER_OF_MARK + 1)
 
 
 class ProcessFrame:
-    def __init__(self, image, frequency, time, x, y, frameNumber):
-        self.frequency = frequency
-        self.frameNumer = frameNumber
+    def __init__(self, image, x, y):
         self.x = x
         self.y = y
-        self.initialAngle = 0
-        self.time = time
         self.relationShip = 0
         self.image = image
         self.alpha = 0
@@ -124,7 +120,7 @@ class ProcessFrame:
 
     def calculateDisplacement(self):
         self.displacement = np.zeros(self.image.shape[0])
-        for y in range(self.upperEnd + 1, self.bottomBegin):
+        for y in range(self.upperEnd + 1, self.bottomBegin - 1):
             self.displacement[y] = self.calculateDisplacementHelper(y) * self.relationShip
 
     "calculate slope for each pixel "

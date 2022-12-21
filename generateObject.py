@@ -5,7 +5,9 @@ from here we can
 import matplotlib.pyplot as plt
 from processVideo import *
 
-NUMBER_OF_POINT_IN_PIXEL = 10
+NUMBER_OF_POINT_IN_PIXEL = 20
+
+INTER_VAIL = STOP - BEGIN
 
 
 class Surface:
@@ -46,17 +48,17 @@ class GenerateObject:
         self.y = None
         self.z = None
         self.relationShip = None
-        self.processVideo()
+        # self.processVideo()
         self.displayObject()
 
     def processVideo(self):
-        firstVideo = ProcessVideo(self.path1, self.freq, self.distanceLight, self.distanceOfSurface)
-        secondVideo = ProcessVideo(self.path2, self.freq, self.distanceLight, self.distanceOfSurface)
-        if firstVideo.angles.shape != secondVideo.angles.shape:
-            raise "Size of first and second video are not the same "
-        for i in range(firstVideo.angles.shape[0]):
+        firstVideo = ProcessVideo(self.path1, self.distanceLight, self.distanceOfSurface, True)
+        secondVideo = ProcessVideo(self.path2, self.distanceLight, self.distanceOfSurface, False)
+        # if firstVideo.angles.shape != secondVideo.angles.shape:
+        #     raise "Size of first and second video are not the same "
+        for i in range(INTER_VAIL):
             x, y, z = None, None, None
-            for j in range(firstVideo.angles.shape[1]):
+            for j in range(INTER_VAIL):
                 if i == 0 and j == 0:
                     self.relationShip = firstVideo.relationShip
                 surface = Surface(i * self.relationShip, j * self.relationShip, firstVideo.angles[i, j],
@@ -88,7 +90,7 @@ class GenerateObject:
         plt.show()
 
 
-path1 = "C:\\Users\\Hussam Salamh\\Desktop\\3DScanner\\tmp2video.avi"
-path2 = "C:\\Users\\Hussam Salamh\\Desktop\\3DScanner\\tmp2videoRotat.avi"
+path1 = "C:\\Users\\Hussam Salamh\\Desktop\\3DScanner\\tmp2Video.avi"
+path2 = "C:\\Users\\Hussam Salamh\\Desktop\\3DScanner\\tmp2Video.avi"
 
 generate = GenerateObject(path1, path2, 1, 3, 30)
