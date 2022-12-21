@@ -3,11 +3,11 @@ This class will generate the object
 from here we can
 """
 import matplotlib.pyplot as plt
-from processVideo import *
+from processFolder import *
 
 NUMBER_OF_POINT_IN_PIXEL = 20
 
-INTER_VAIL = STOP - BEGIN
+INTER_VAIL = 10     # TODO need to change that
 
 
 class Surface:
@@ -37,32 +37,33 @@ class Surface:
         return np.array([self.x, self.y, self.z])
 
 
+
+
+
 class GenerateObject:
-    def __init__(self, path1, path2, x, y, freq):
+    def __init__(self, path1, path2, x, y):
         self.path1 = path1
         self.path2 = path2
         self.distanceLight = x
         self.distanceOfSurface = y
-        self.freq = freq
         self.x = None
         self.y = None
         self.z = None
         self.relationShip = None
-        # self.processVideo()
         self.displayObject()
 
-    def processVideo(self):
-        firstVideo = ProcessVideo(self.path1, self.distanceLight, self.distanceOfSurface, True)
-        secondVideo = ProcessVideo(self.path2, self.distanceLight, self.distanceOfSurface, False)
+    def generateObject(self):
+        processVideos = ProcessFolder(self.path1, self.path2, self.distanceLight, self.distanceOfSurface)
         # if firstVideo.angles.shape != secondVideo.angles.shape:
         #     raise "Size of first and second video are not the same "
-        for i in range(INTER_VAIL):
+        verticalAngle = processVideos.angleVertical
+        horizontalAngle = processVideos.angleHorizontal
+        self.relationShip = processVideos.relationshipVertical
+        for i in range(INTER_VAIL):  # TODO : need to change it to len
             x, y, z = None, None, None
-            for j in range(INTER_VAIL):
-                if i == 0 and j == 0:
-                    self.relationShip = firstVideo.relationShip
-                surface = Surface(i * self.relationShip, j * self.relationShip, firstVideo.angles[i, j],
-                                  secondVideo.angles[i, j], self.relationShip)
+            for j in range(INTER_VAIL):  # TODO : need to change it to len
+                surface = Surface(i * self.relationShip, j * self.relationShip, verticalAngle.angles[i, j],
+                                  horizontalAngle.angles[i, j], self.relationShip)
                 if j == 0:
                     x = np.copy(surface.x)
                     y = np.copy(surface.y)

@@ -7,8 +7,6 @@ w : we can find it from dt * fre < step-motor >
 therefore we can find alpha
 
 """
-import math
-
 import cv2
 import numpy as np
 
