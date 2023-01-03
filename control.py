@@ -25,6 +25,8 @@ This for connecting the phone with laptop
 """
 RA = 34554.96
 
+OBJECT_LEN = 100  # mm
+
 url = 'http://172.27.59.159:8080/video'
 print('Cam ready')
 dev = Thorlabs.list_kinesis_devices()[0][0]
