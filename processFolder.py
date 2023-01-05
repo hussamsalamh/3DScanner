@@ -16,7 +16,7 @@ def takeImage(path, array):
     for images in os.listdir(path):
 
         # check if the image ends with png or jpg or jpeg
-        if (images.endswith(".png") or images.endswith(".jpg") \
+        if (images.endswith(".png") or images.endswith(".jpg")
                 or images.endswith(".jpeg")):
             array.append(images)
 
@@ -39,7 +39,7 @@ class ProcessFolder:
         for i in range(len(self.horizontalImage)):
             processFrame = ProcessFrame(self.horizontalImage[i], self.x, self.y)
             if i == 0:
-                self.relationshipHorizontal = processFrame.angles[0]
+                self.relationshipHorizontal = processFrame.relationShip
                 self.angleHorizontal = processFrame.angles.reshape(-1, 1)
             else:
                 self.angleHorizontal = np.c_[self.angleHorizontal, processFrame.angles.reshape(-1, 1)]
